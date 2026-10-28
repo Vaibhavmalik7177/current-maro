@@ -21,13 +21,28 @@ class FocusMonitorApp:
         self.light_status = "OFF"
 
         #UI
-        title_label = tk.Label(root, text="Focus Monitor", font=("Arial", 16))
+        title_label = tk.Label(root, text="Focus Monitor", font=("Arial", 18,"bold"),fg="#ffffff",bg="#1e1e1e")
+        title_label.pack(pady=15)
 
-        self.start_button = tk.Button(root, text="Start Monitoring", command=self.start_monitoring)
-        self.start_button.pack(pady=20)
+        self.status_label = tk.Label(root, text="Status: Not Monitoring", font=("Arial", 12), fg="#ffffff", bg="#1e1e1e")
+        self.status_label.pack(pady=5)
 
-        self.stop_button = tk.Button(root, text="Stop Monitoring", command=self.stop_monitoring, state=tk.DISABLED)
-        self.stop_button.pack(pady=20)
+        self.time_label = tk.Label(root, text="Time spent on distractions: 0 seconds", font=("Arial", 12), fg="#ffffff", bg="#1e1e1e")
+        self.time_label.pack(pady=5)
 
-        self.monitoring = False
-        self.monitor_thread = None
+        self.light_table = tk.Label(root, text="Light Status: OFF", font=("Arial", 14), fg="#ffffff", bg="#1e1e1e")
+        self.light_table.pack(pady=15)
+
+        self.start_btn = tk.Button(root, text="Start Monitoring", command=self.start_monitoring, font=("Arial", 12), bg="#4CAF50", fg="#ffffff")
+        self.start_btn.pack(pady=5)
+
+        self.stop_btn = tk.Button(root, text="Stop Monitoring", command=self.stop_monitoring, font=("Arial", 12), bg="#f44336", fg="#ffffff")
+        self.stop_btn.pack(pady=5)
+    def trigger_esp32(self, state):
+        try:
+            requests.get(f"http://{ESP32_IP}/{state}", timeout=1)
+            self.light_status = state.upper()
+            self.light_table.config(text=f"Light Status: {self.light_status}",fg=color)
+            color = "#2ecc71" if state == "off" else "#e74c3c"
+        except requests.exceptions.RequestException:
+            pass # Silent Exist 
