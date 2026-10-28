@@ -46,3 +46,24 @@ class FocusMonitorApp:
             color = "#2ecc71" if state == "off" else "#e74c3c"
         except requests.exceptions.RequestException:
             pass # Silent Exist 
+    def monitor_distractions(self):
+        while self.is_running:
+            app_detection = False
+            #Scan active processes
+            for proc in psutil.process_iter(['name']):
+                
+                try:
+                    if proc.info['name'] in UNWANTED_APP:
+                        
+                        break
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue
+
+            self.time_label.config(text=f"Time spent on distractions: {self.elapsed_time} seconds")
+            if self.elapsed_time >= MAX_TIME:
+                self.trigger_esp32("on")
+                messagebox.showwarning("Warning", "You have been distracted for too long! Light turned ON.")
+                self.stop_monitoring()
+                break
+
+            time.sleep(1)  # Check every second
