@@ -1,0 +1,25 @@
+// Pin 2 is the built-in blue LED on the ESP32
+const int outputPin = 2; 
+
+void setup() {
+  Serial.begin(115200); // Start listening to the USB cable
+  pinMode(outputPin, OUTPUT);
+  digitalWrite(outputPin, LOW); // Start with the pin turned OFF
+}
+
+void loop() {
+  // If a message comes in from Python...
+  if (Serial.available() > 0) {
+    String command = Serial.readStringUntil('\n');
+    command.trim(); 
+    
+    // Turn the pin ON (Outputs 3.3V / Turns on Blue LED)
+    if (command == "ON") {
+      digitalWrite(outputPin, HIGH);
+    } 
+    // Turn the pin OFF (Outputs 0V / Turns off Blue LED)
+    else if (command == "OFF") {
+      digitalWrite(outputPin, LOW);
+    }
+  }
+}
