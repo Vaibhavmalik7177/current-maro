@@ -1,25 +1,38 @@
-// Pin 2 is the built-in blue LED on the ESP32
-const int outputPin = 2; 
+const int SHOCK_PIN = 4; // GPIO pin connected to your relay or MOSFET
+const unsigned long MAX_SHOCK_TIME_MS = 1500; // Auto-shutoff safety (1.5 seconds)
+
+unsigned long shockStartTime = 0;
+bool isShocking = false;
 
 void setup() {
-  Serial.begin(115200); // Start listening to the USB cable
-  pinMode(outputPin, OUTPUT);
-  digitalWrite(outputPin, LOW); // Start with the pin turned OFF
+  // Initialize Serial communication. Python MUST use this same baud rate.
+  Serial.begin(115200);
+  
+  pinMode(SHOCK_PIN, OUTPUT);
+  digitalWrite(SHOCK_PIN, LOW); // Always start in a safe (off) state
 }
 
 void loop() {
-  // If a message comes in from Python...
+  // 1. Listen for signals from the Python script
   if (Serial.available() > 0) {
     String command = Serial.readStringUntil('\n');
-    command.trim(); 
-    
-    // Turn the pin ON (Outputs 3.3V / Turns on Blue LED)
-    if (command == "ON") {
-      digitalWrite(outputPin, HIGH);
+    command.trim(); // Removes invisible carriage returns or spaces
+
+    if (command == "on") {
+      digitalWrite(SHOCK_PIN, HIGH);
+      isShocking = true;
+      shockStartTime = millis(); // Start the safety timer
     } 
-    // Turn the pin OFF (Outputs 0V / Turns off Blue LED)
-    else if (command == "OFF") {
-      digitalWrite(outputPin, LOW);
+    else if (command == "off") {
+      digitalWrite(SHOCK_PIN, LOW);
+      isShocking = false;
     }
+  }
+
+  // 2. Hardware safety timeout
+  // If the shock is on longer than the max allowed time, force it off.
+  if (isShocking && (millis() - shockStartTime >= MAX_SHOCK_TIME_MS)) {
+    digitalWrite(SHOCK_PIN, LOW);
+    isShocking = false;
   }
 }
